@@ -23,12 +23,23 @@ async function run() {
             const products = await cursor.toArray()
             res.send(products)
         } )
+        app.get ('/product/:id' ,async(req, res)=>{
+            const id = req.params.id;
+            const query = {_id: ObjectId(id)}
+            const product = await productCollection.findOne(query)
+            res.send(product)
+        })
         
         app.get('/review', async(req, res)=>{
             const query ={}
             const cursor = reviewCollection.find(query)
             const reviews = await cursor.toArray()
             res.send(reviews)
+        })
+        app.post('/review', async(req, res)=>{
+            const newItem = req.body;
+            const result = await reviewCollection.insertOne(newItem)
+            res.send(result)
         })
 
     }
