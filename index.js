@@ -20,69 +20,76 @@ async function run() {
         const reviewCollection = client.db('computer-hardware').collection('reviews')
         const orderCollection = client.db('computer-hardware').collection('order')
         const userCollection = client.db('computer-hardware').collection('user')
-        
-        app.get('/product', async(req, res)=>{
+
+        app.get('/product', async (req, res) => {
             const query = {}
             const cursor = productCollection.find(query)
             const products = await cursor.toArray()
             res.send(products)
-        } )
-        app.get ('/product/:id' ,async(req, res)=>{
+        })
+        app.get('/product/:id', async (req, res) => {
             const id = req.params.id;
-            const query = {_id: ObjectId(id)}
+            const query = { _id: ObjectId(id) }
             const product = await productCollection.findOne(query)
             res.send(product)
         })
-        app.post('/order', async(req, res)=>{
+        app.post('/order', async (req, res) => {
             const order = req.body;
             const result = await orderCollection.insertOne(order)
             res.send(result)
         })
-        app.get ('/order', async(req, res)=>{
+        app.get('/order', async (req, res) => {
             const customerEmail = req.query.customerEmail;
-            const query = {customerEmail: customerEmail};
+            const query = { customerEmail: customerEmail };
             const orders = await orderCollection.find(query).toArray();
             res.send(orders)
         })
-        
-        app.get('/review', async(req, res)=>{
-            const query ={}
+
+        app.get('/review', async (req, res) => {
+            const query = {}
             const cursor = reviewCollection.find(query)
             const reviews = await cursor.toArray()
             res.send(reviews)
         })
-        app.post('/review', async(req, res)=>{
+        app.post('/review', async (req, res) => {
             const newItem = req.body;
             const result = await reviewCollection.insertOne(newItem)
             res.send(result)
         })
 
-        app.put('/user/:email', async(req,res)=>{
+        app.put('/user/:email', async (req, res) => {
             const email = req.params.email;
             const user = req.body;
-            const filter = {email:email};
-            const options = {upsert:true};
+            const filter = { email: email };
+            const options = { upsert: true };
             const updateDoc = {
-                $set:user,
+                $set: user,
             };
             const result = await userCollection.updateOne(filter, updateDoc, options)
-            const token = jwt.sign({email:email},  process.env.ACCESS_TOKEN_SECRET, {expiresIn: '1d'})
-            res.send({result, token})
+            const token = jwt.sign({ email: email }, process.env.ACCESS_TOKEN_SECRET, { expiresIn: '1d' })
+            res.send({ result, token })
         })
-        app.put('/user/admin/:email', async(req,res)=>{
+
+        app.put('/user/admin/:email', async (req, res) => {
             const email = req.params.email;
-            const filter = {email:email};
+            const filter = { email: email };
             const updateDoc = {
-                $set:{role:'admin'},
+                $set: { role: 'admin' },
             };
             const result = await userCollection.updateOne(filter, updateDoc)
             res.send(result)
         })
-        app.get('/user' , async(req, res) =>{
+        app.get('/admin/:email', async (req, res) => {
+            const email = req.params.email;
+            const user = await userCollection.findOne({ email: email });
+            const isAdmin = user.role === 'admin';
+            res.send({ admin: isAdmin })
+          })
+        app.get('/user', async (req, res) => {
             const users = await userCollection.find().toArray();
             res.send(users)
         })
-      
+
 
     }
     finally {
