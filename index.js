@@ -17,6 +17,8 @@ async function run() {
         await client.connect();
         const productCollection = client.db('computer-hardware').collection('products')
         const reviewCollection = client.db('computer-hardware').collection('reviews')
+        const orderCollection = client.db('computer-hardware').collection('order')
+        
         app.get('/product', async(req, res)=>{
             const query = {}
             const cursor = productCollection.find(query)
@@ -29,6 +31,23 @@ async function run() {
             const product = await productCollection.findOne(query)
             res.send(product)
         })
+        app.post('/order', async(req, res)=>{
+            const order = req.body;
+            const result = await orderCollection.insertOne(order)
+            res.send(result)
+        })
+        app.get ('/order', async(req, res)=>{
+            const customerEmail = req.query.customerEmail;
+            const query = {customerEmail: customerEmail};
+            const orders = await orderCollection.find(query).toArray();
+            res.send(orders)
+        })
+        // app.get('/order' , async(req, res)=>{
+        //     const query = {}
+        //     const cursor = orderCollection.find(query)
+        //     const order = await cursor.toArray()
+        //     res.send(order)
+        // })
         
         app.get('/review', async(req, res)=>{
             const query ={}
