@@ -1,6 +1,7 @@
 const express = require('express');
 const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 const cors = require('cors');
+const jwt = require('jsonwebtoken');
 require('dotenv').config()
 const app = express()
 const port = process.env.PORT || 5000
@@ -18,6 +19,7 @@ async function run() {
         const productCollection = client.db('computer-hardware').collection('products')
         const reviewCollection = client.db('computer-hardware').collection('reviews')
         const orderCollection = client.db('computer-hardware').collection('order')
+        const userCollection = client.db('computer-hardware').collection('user')
         
         app.get('/product', async(req, res)=>{
             const query = {}
@@ -42,12 +44,6 @@ async function run() {
             const orders = await orderCollection.find(query).toArray();
             res.send(orders)
         })
-        // app.get('/order' , async(req, res)=>{
-        //     const query = {}
-        //     const cursor = orderCollection.find(query)
-        //     const order = await cursor.toArray()
-        //     res.send(order)
-        // })
         
         app.get('/review', async(req, res)=>{
             const query ={}
@@ -60,6 +56,20 @@ async function run() {
             const result = await reviewCollection.insertOne(newItem)
             res.send(result)
         })
+
+        app.put('/user/:email', async(req,res)=>{
+            const email = req.params.email;
+            const user = req.body;
+            const filter = {email:email};
+            const options = {upsert:true};
+            const updateDoc = {
+                $set:user,
+            };
+            const result = await userCollection.updateOne(filter, updateDoc, options)
+            const token = jwt.sign({email:email},  process.env.ACCESS_TOKEN_SECRET, {expiresIn: '1d'})
+            res.send({result, token})
+        })
+      
 
     }
     finally {
